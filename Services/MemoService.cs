@@ -1,6 +1,7 @@
 ﻿using MemosService.Data;
 using MemosService.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace MemosService.Services
 {
@@ -22,24 +23,42 @@ namespace MemosService.Services
 
         public async Task<List<Memo>> GetMemoByPage(int page, int pageSize)
         {
-            // 由新到旧排序
             var memoList = await _context.Memos.OrderByDescending(x => x.createdDate).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
             return memoList;
         }
 
-        // TODO 处理 memoID 相同时的更新 Memo
         public async Task<Memo> PostMemo(Memo memo)
         {
-            try
+            var dataMemo = await _context.Memos.Where(x => x.memoId == memo.memoId).FirstOrDefaultAsync();
+            if (dataMemo != null)
             {
-                await _context.Memos.AddAsync(memo);
-                _context.SaveChanges();
-                return memo;
+                try
+                {
+                    dataMemo.content = memo.content;
+                    dataMemo.lastModifiedDate = memo.lastModifiedDate;
+                    dataMemo.tags = memo.tags;
+                    _context.SaveChanges();
+                    return memo;
+                }
+                catch
+                {
+                    _logger.LogError($"[MemoService] 更新 Memo 失败: 参数错误");
+                    return null;
+                }
             }
-            catch
+            else
             {
-                _logger.LogError($"[MemoService] 添加 Memo 失败: 参数错误");
-                return null;
+                try
+                {
+                    await _context.Memos.AddAsync(memo);
+                    _context.SaveChanges();
+                    return memo;
+                }
+                catch
+                {
+                    _logger.LogError($"[MemoService] 添加 Memo 失败: 参数错误");
+                    return null;
+                }
             }
         }
     }

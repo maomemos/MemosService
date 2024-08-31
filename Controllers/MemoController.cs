@@ -3,8 +3,6 @@ using MemosService.Services;
 using Microsoft.AspNetCore.Authorization;
 using MemosService.Models;
 using System.IdentityModel.Tokens.Jwt;
-using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 
 namespace MemosService.Controllers
 {

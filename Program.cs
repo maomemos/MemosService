@@ -14,19 +14,17 @@ namespace MemosService
         {
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddEndpointsApiExplorer();
-            var corsName = "AllowSpecificOrigin";
             builder.Services.AddCors(option =>
             {
-                option.AddPolicy(name: corsName, policy =>
+                option.AddPolicy("AllowSpecificOrigin", policy =>
                 {
-#pragma warning disable CS8604
-                    policy.WithOrigins(builder.Configuration["Cors:domain"])
+                    policy.WithOrigins(builder.Configuration["Cors:domain"]!)
                         .AllowAnyHeader()
                         .SetIsOriginAllowedToAllowWildcardSubdomains()
                         .AllowAnyMethod();
-#pragma warning restore CS8604
                 });
             });
+            
             builder.Services.AddSwaggerGen(option =>
             {
                 option.SwaggerDoc("v1", new OpenApiInfo
@@ -101,12 +99,12 @@ namespace MemosService
             // app.UseDeveloperExceptionPage();
 
             app.UseDefaultFiles(defaultFilesOptions);
+            app.UseHttpsRedirection();
             app.UseStaticFiles();
-            app.UseCors(corsName);
+            app.UseRouting();
+            app.UseCors("AllowSpecificOrigin");
             app.UseSwagger();
             app.UseSwaggerUI();
-            app.UseHttpsRedirection();
-            app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
