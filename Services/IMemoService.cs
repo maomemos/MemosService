@@ -7,5 +7,6 @@ namespace MemosService.Services
         Task<Memo> GetMemoById(int memoId);
         Task<List<Memo>> GetMemoByPage(int page, int pageSize);
         Task<Memo> PostMemo(Memo memo);
+        Task<int> DeleteMemo(int memoId);
     }
 }

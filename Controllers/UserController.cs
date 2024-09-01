@@ -2,6 +2,7 @@
 using MemosService.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using System.Text.RegularExpressions;
 
 namespace MemosService.Controllers
 {
@@ -66,6 +67,15 @@ namespace MemosService.Controllers
         [HttpPost("/User/register", Name = "RegisterUser")]
         public async Task<IActionResult> RegisterUser([FromBody] Auth auth)
         {
+            string usernamePattern = @"^[a-zA-Z0-9]{2,15}$";
+            string passwordPattern = @"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[#@_])[a-zA-Z0-9#@_]{10,20}$";
+            bool isValidUsername = Regex.IsMatch(auth.username, usernamePattern);
+            bool isValidPassword = Regex.IsMatch(auth.password, passwordPattern);
+            if(!isValidPassword || !isValidUsername)
+            {
+                _logger.LogError($"[UserController] 注册用户: 注册失败");
+                return Json(new { account = Json(null).Value, statusCode = 400 });
+            }
             var user = await _userService.RegisterUser(auth);
             if(user == null)
             {
@@ -86,6 +96,15 @@ namespace MemosService.Controllers
         [HttpPost("/User/login", Name = "LoginUser")]
         public async Task<IActionResult> LoginUser([FromBody] Auth auth)
         {
+            string usernamePattern = @"^[a-zA-Z0-9]{2,15}$";
+            string passwordPattern = @"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[#@_])[a-zA-Z0-9#@_]{10,20}$";
+            bool isValidUsername = Regex.IsMatch(auth.username, usernamePattern);
+            bool isValidPassword = Regex.IsMatch(auth.password, passwordPattern);
+            if (!isValidPassword || !isValidUsername)
+            {
+                _logger.LogError($"[UserController] 登录用户: 登录失败");
+                return Json(new { account = Json(null).Value, statusCode = 400 });
+            }
             var token = await _userService.LoginUser(auth);
             if(token == null)
             {

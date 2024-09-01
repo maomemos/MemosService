@@ -61,5 +61,19 @@ namespace MemosService.Services
                 }
             }
         }
+
+        public async Task<int> DeleteMemo(int memoId)
+        {
+            try
+            {
+                var count = await _context.Memos.Where(x => x.memoId == memoId).ExecuteDeleteAsync();
+                return count;
+            }
+            catch
+            {
+                _logger.LogError($"[MemoService] 删除 Memo 失败: 参数错误");
+                return 0;
+            }
+        }
     }
 }
