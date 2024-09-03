@@ -42,14 +42,15 @@ namespace MemosService.Controllers
         /// <summary>
         /// 查询特定页条目
         /// </summary>
+        /// <param name="query">查询参数</param>
         /// <param name="page">页数</param>
         /// <param name="pageSize">每页条目数</param>
         /// <returns></returns>
         [HttpGet("/Memo/trends", Name = "GetMemoByPage")]
         [Authorize]
-        public async Task<IActionResult> GetMemoByPage([FromQuery] int page, int pageSize) 
+        public async Task<IActionResult> GetMemoByPage([FromQuery] string query = "", int page = 1, int pageSize = 20) 
         {
-            var memoList = await _memoService.GetMemoByPage(page, pageSize);
+            var memoList = await _memoService.GetMemoByPage(query, page, pageSize);
             if(memoList == null)
             {
                 _logger.LogError($"[MemoController] 查询 Memo Page: 每页展示 {pageSize} 条 memo, 第 {page} 页为空");
@@ -116,7 +117,7 @@ namespace MemosService.Controllers
         /// </summary>
         /// <param name="memoId">Memo Id</param>
         /// <returns></returns>
-        [HttpDelete("/Memo", Name ="DeleteMemo")]
+        [HttpDelete("/Memo", Name = "DeleteMemo")]
         [Authorize]
         public async Task<IActionResult> DeleteMemo([FromQuery] int memoId)
         {

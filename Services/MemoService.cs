@@ -21,9 +21,9 @@ namespace MemosService.Services
             return memo;
         }
 
-        public async Task<List<Memo>> GetMemoByPage(int page, int pageSize)
+        public async Task<List<Memo>> GetMemoByPage(string query, int page, int pageSize)
         {
-            var memoList = await _context.Memos.OrderByDescending(x => x.createdDate).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            var memoList = await _context.Memos.Where(x => x.content.Contains(query)).OrderByDescending(x => x.createdDate).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
             return memoList;
         }
 
