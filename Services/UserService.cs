@@ -52,9 +52,9 @@ namespace MemosService.Services
                 _context.SaveChanges();
                 return user;
             }
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError($"[UserService] 注册用户: 参数获取错误");
+                _logger.LogError(ex.ToString());
                 return null;
             }
         }
@@ -76,6 +76,30 @@ namespace MemosService.Services
             var tokenTool = new Token(_config);
             var token = tokenTool.GenerateToken(auth);
             return token;
+        }
+
+        public async Task<Dictionary<int, int>> GetUserAnalysisData(int userId, int year)
+        {
+            try
+            {
+                var memosData = await _context.Memos
+                    .Where(x => x.userId == userId && x.createdDate.Year == year)
+                    .GroupBy(x => x.createdDate.Month)
+                    .Select(g => new { Month = g.Key, Count = g.Count() })
+                    .ToListAsync();
+
+                var result = new Dictionary<int, int>();
+                for (int i = 1; i <= 12; i++)
+                {
+                    result[i - 1] = memosData.FirstOrDefault(g => g.Month == i)?.Count ?? 0;
+                }
+                return result;
+            }
+            catch (Exception ex) 
+            {
+                _logger.LogError(ex.ToString());
+                return null;
+            }
         }
     }
 }

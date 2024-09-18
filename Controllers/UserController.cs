@@ -114,5 +114,17 @@ namespace MemosService.Controllers
             _logger.LogInformation($"[UserController] 登录用户: username = {auth.username}");
             return Json(new { token = token, statusCode = 200 });
         }
+
+        [HttpGet("/User/analysis", Name = "AnalysisUser")]
+        public async Task<IActionResult> GetUserAnalysisData([FromQuery] int userId, int year)
+        {
+            var memosData = await _userService.GetUserAnalysisData(userId, year);
+            if(memosData == null)
+            {
+                _logger.LogError($"[UserController] 查询 MemosData：查询失败");
+                return Json(new { memosData = memosData, statusCode = 400 });
+            }
+            return Json(new { memosData = memosData, statusCode = 200 });
+        }
     }
 }
