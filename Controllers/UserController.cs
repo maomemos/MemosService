@@ -126,5 +126,16 @@ namespace MemosService.Controllers
             }
             return Json(new { memosData = memosData, statusCode = 200 });
         }
+        [HttpGet("/User/heatmap", Name = "UserHeatmap")]
+        public async Task<IActionResult> GetUserHeatmap([FromQuery] int userId, int year)
+        {
+            var heatmapData = await _userService.GetUserHeatmapData(userId, year);
+            if (heatmapData == null)
+            {
+                _logger.LogError($"[UserController] 查询 HeatmapData：查询失败");
+                return Json(new { memosData = heatmapData, statusCode = 400 });
+            }
+            return Json(new { heatmapData = heatmapData, statusCode = 200 });
+        }
     }
 }

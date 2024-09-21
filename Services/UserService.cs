@@ -82,12 +82,15 @@ namespace MemosService.Services
         {
             try
             {
+                if(await _context.Users.Where(x => x.userId == userId).FirstOrDefaultAsync() == null)
+                {
+                    return null;
+                }
                 var memosData = await _context.Memos
                     .Where(x => x.userId == userId && x.createdDate.Year == year)
                     .GroupBy(x => x.createdDate.Month)
                     .Select(g => new { Month = g.Key, Count = g.Count() })
                     .ToListAsync();
-
                 var result = new Dictionary<int, int>();
                 for (int i = 1; i <= 12; i++)
                 {
@@ -96,6 +99,35 @@ namespace MemosService.Services
                 return result;
             }
             catch (Exception ex) 
+            {
+                _logger.LogError(ex.ToString());
+                return null;
+            }
+        }
+        public async Task<Dictionary<string, int>> GetUserHeatmapData(int userId, int year)
+        {
+            try
+            {
+                if (await _context.Users.Where(x => x.userId == userId).FirstOrDefaultAsync() == null)
+                {
+                    return null;
+                }
+                var heatmapData = await _context.Memos
+                    .Where(x => x.userId == userId && x.createdDate.Year == year)
+                    .GroupBy(x => x.createdDate.Date)
+                    .Select(g => new { Date = g.Key, Count = g.Count() })
+                    .ToListAsync();
+                var result = new Dictionary<string, int>();
+                int daysInYear = DateTime.IsLeapYear(year) ? 366 : 365;
+                DateTime startDate = new DateTime(year, 1, 1);
+                for(int i = 1; i <= daysInYear; i++)
+                {
+                    DateTime currentDate = startDate.AddDays(i - 1);
+                    result[currentDate.ToString("yyyy-MM-dd")] = heatmapData.FirstOrDefault(g => g.Date == currentDate)?.Count ?? 0;
+                }
+                return result;
+            }
+            catch (Exception ex)
             {
                 _logger.LogError(ex.ToString());
                 return null;
