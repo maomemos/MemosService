@@ -2,6 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using MemosService.Data;
 using MemosService.Utils;
+using System.Text.Json.Serialization;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace MemosService.Services
 {
@@ -104,7 +107,7 @@ namespace MemosService.Services
                 return null;
             }
         }
-        public async Task<Dictionary<string, int>> GetUserHeatmapData(int userId, int year)
+        public async Task<List<object>> GetUserHeatmapData(int userId, int year)
         {
             try
             {
@@ -117,13 +120,14 @@ namespace MemosService.Services
                     .GroupBy(x => x.createdDate.Date)
                     .Select(g => new { Date = g.Key, Count = g.Count() })
                     .ToListAsync();
-                var result = new Dictionary<string, int>();
+                var result = new List<object>();
                 int daysInYear = DateTime.IsLeapYear(year) ? 366 : 365;
                 DateTime startDate = new DateTime(year, 1, 1);
-                for(int i = 1; i <= daysInYear; i++)
+                for (int i = 1; i <= daysInYear; i++)
                 {
                     DateTime currentDate = startDate.AddDays(i - 1);
-                    result[currentDate.ToString("yyyy-MM-dd")] = heatmapData.FirstOrDefault(g => g.Date == currentDate)?.Count ?? 0;
+                    int count = heatmapData.FirstOrDefault(g => g.Date == currentDate)?.Count ?? 0;
+                    result.Add(new { date = currentDate.ToString("yyyy-MM-dd"), count = count, level = Math.Floor(Math.Sqrt(count * 100) / 10) });
                 }
                 return result;
             }

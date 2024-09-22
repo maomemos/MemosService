@@ -9,6 +9,6 @@ namespace MemosService.Services
         Task<User> RegisterUser(Auth auth);
         Task<string> LoginUser(Auth auth);
         Task<Dictionary<int, int>> GetUserAnalysisData(int userId, int year);
-        Task<Dictionary<string, int>> GetUserHeatmapData(int userId, int year);
+        Task<List<object>> GetUserHeatmapData(int userId, int year);
     }
 }
