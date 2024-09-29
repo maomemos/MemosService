@@ -80,6 +80,33 @@ namespace MemosService.Services
             var token = tokenTool.GenerateToken(auth);
             return token;
         }
+        public async Task<User> UpdateUser(Account account)
+        {   
+            var userId = account.userId;
+            try
+            {
+                var currentUser = await _context.Users.Where(x => x.userId == account.userId).FirstOrDefaultAsync();
+                if(currentUser == null)
+                {
+                    _logger.LogError($"[UserService] 修改用户: 用户不存在");
+                    return null;
+                }
+                currentUser.password = account.password ?? currentUser.password;
+                currentUser.email = account.email ?? currentUser.email;
+                currentUser.open_id = account.open_id ?? currentUser.open_id;
+                if (account.password != null)
+                {
+                    currentUser.password = BCrypt.Net.BCrypt.HashPassword(account.password, 4) ?? currentUser.password;
+                }
+                _context.SaveChanges();
+                return currentUser;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.ToString());
+                return null;
+            }
+        }
 
         public async Task<Dictionary<int, int>> GetUserAnalysisData(int userId, int year)
         {

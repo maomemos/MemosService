@@ -16,6 +16,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Models\Note.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Middlewares\" />
   </ItemGroup>
 

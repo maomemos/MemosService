@@ -3,6 +3,7 @@ using MemosService.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Text.RegularExpressions;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace MemosService.Controllers
 {
@@ -35,7 +36,7 @@ namespace MemosService.Controllers
                 return Json(new { account = user, statusCode = 400 });
             }
             _logger.LogInformation($"[UserController] 查询用户: userId = {userId}");
-            var account = new { userId = user.userId, username = user.username, createdDate = user.createdDate, lastModifiedDate = user.lastModifiedDate };
+            var account = new { userId = user.userId, username = user.username, email = user.email, open_id = user.open_id, createdDate = user.createdDate, lastModifiedDate = user.lastModifiedDate };
             return Json(new { account = account, statusCode = 200 });
         }
         /// <summary>
@@ -96,15 +97,6 @@ namespace MemosService.Controllers
         [HttpPost("/User/login", Name = "LoginUser")]
         public async Task<IActionResult> LoginUser([FromBody] Auth auth)
         {
-            string usernamePattern = @"^[a-zA-Z0-9]{2,15}$";
-            string passwordPattern = @"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[#@_])[a-zA-Z0-9#@_]{10,20}$";
-            bool isValidUsername = Regex.IsMatch(auth.username, usernamePattern);
-            bool isValidPassword = Regex.IsMatch(auth.password, passwordPattern);
-            if (!isValidPassword || !isValidUsername)
-            {
-                _logger.LogError($"[UserController] 登录用户: 登录失败");
-                return Json(new { account = Json(null).Value, statusCode = 400 });
-            }
             var token = await _userService.LoginUser(auth);
             if(token == null)
             {
@@ -136,6 +128,61 @@ namespace MemosService.Controllers
                 return Json(new { memosData = heatmapData, statusCode = 400 });
             }
             return Json(new { heatmapData = heatmapData, statusCode = 200 });
+        }
+
+        // PUT: /User
+        /// <summary>
+        /// 修改用户密码和邮箱
+        /// </summary>
+        /// <param name="account">用户可修改信息对象</param>
+        /// <returns></returns>
+        [HttpPut("/User", Name = "UpdateUser")]
+        [Authorize]
+        public async Task<IActionResult> UpdateUser([FromBody] Account account)
+        {
+            var token = Request.Headers["Authorization"].FirstOrDefault();
+            token = token?.Replace("Bearer ", "");
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadJwtToken(token);
+            var claims = jsonToken.Claims.ToList();
+            var username = claims.FirstOrDefault(c => c.Type == "sub")!.Value.ToString();
+            var originUser = await _userService.GetUserById(account.userId);
+            if(originUser == null)
+            {
+                _logger.LogError($"[UserController] 更新 Memo: 更新用户失败");
+                return Json(new { user = originUser, statusCode = 999 });
+            }
+            else
+            {
+                if(originUser.username == username)
+                {
+                    if (account.currentPassword != null && BCrypt.Net.BCrypt.Verify(account.currentPassword, originUser.password))
+                    {
+                        if (account.password != null && account.password.Length > 0)
+                        {
+                            string passwordPattern = @"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[#@_])[a-zA-Z0-9#@_]{10,20}$";
+                            bool isValidPassword = Regex.IsMatch(account.password, passwordPattern);
+                            if (!isValidPassword)
+                            {
+                                _logger.LogError($"[UserController] 更新 Memo: 更新用户失败");
+                                return Json(new { message = "密码格式错误", statusCode = 405 });
+                            }
+                        }
+                        await _userService.UpdateUser(account);
+                        return Json(new { message = "用户信息修改成功", statusCode = 200 });
+                    }
+                    else
+                    {
+                        _logger.LogError($"[UserController] 更新 Memo: 更新用户失败");
+                        return Json(new { message = "当前密码错误", statusCode = 401 });
+                    }
+                }
+                else
+                {
+                    _logger.LogError($"[UserController] 更新 Memo: 更新用户失败");
+                    return Json(new { message = "Token 错误", statusCode = 400 });
+                }
+            }
         }
     }
 }
