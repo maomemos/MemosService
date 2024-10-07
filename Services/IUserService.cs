@@ -5,6 +5,8 @@ namespace MemosService.Services
     public interface IUserService
     {
         Task<User> GetUserById(int userId);
+        Task<User> GetUserByOpenId(string open_id);
+        Task<User> GetUserByEmail(string email);
         Task<User> GetUserByUsername(string username);
         Task<User> RegisterUser(Auth auth);
         Task<string> LoginUser(Auth auth);

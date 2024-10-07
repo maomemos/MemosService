@@ -21,9 +21,39 @@ namespace MemosService.Services
             return memo;
         }
 
-        public async Task<List<Memo>> GetMemoByPage(string query, int page, int pageSize)
+        public async Task<List<Memo>> GetMemoByPage(Query query, int page, int pageSize)
         {
-            var memoList = await _context.Memos.Where(x => x.content.Contains(query)).OrderByDescending(x => x.createdDate).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            var memoQuery = _context.Memos.AsQueryable();
+            // 根据 Query 对象的属性动态添加过滤条件
+            if (query.memoId != -1)
+            {
+                memoQuery = memoQuery.Where(x => x.memoId == query.memoId);
+            }
+            if (query.userId != -1)
+            {
+                memoQuery = memoQuery.Where(x => x.userId == query.userId);
+            }
+            if (!string.IsNullOrEmpty(query.username))
+            {
+                var user = await _context.Users.Where(x => x.username == query.username).FirstOrDefaultAsync();
+                if (user != null)
+                {
+                    memoQuery = memoQuery.Where(x => x.userId == user.userId);
+                }
+            }
+            if (!string.IsNullOrEmpty(query.tag))
+            {
+                memoQuery = memoQuery.Where(x => x.tags!.Contains(query.tag));
+            }
+            if (!string.IsNullOrEmpty(query.content))
+            {
+                memoQuery = memoQuery.Where(x => x.content.Contains(query.content));
+            }
+            var memoList = await memoQuery
+                .OrderByDescending(x => x.createdDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
             return memoList;
         }
 
@@ -60,6 +90,12 @@ namespace MemosService.Services
                     return null;
                 }
             }
+        }
+
+        public async Task<Memo> PostMemoByOpenId(QQMemo qqMemo)
+        {
+
+            return null;
         }
 
         public async Task<int> DeleteMemo(int memoId)

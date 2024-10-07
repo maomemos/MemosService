@@ -46,17 +46,40 @@ namespace MemosService.Controllers
         /// <param name="page">页数</param>
         /// <param name="pageSize">每页条目数</param>
         /// <returns></returns>
-        [HttpGet("/Memo/trends", Name = "GetMemoByPage")]
+        [HttpPost("/Memo/trends", Name = "GetMemoByPage")]
         [Authorize]
-        public async Task<IActionResult> GetMemoByPage([FromQuery] string query = "", int page = 1, int pageSize = 20) 
+        public async Task<IActionResult> GetMemoByPage([FromBody] Query query) 
         {
-            var memoList = await _memoService.GetMemoByPage(query, page, pageSize);
+            // TODO query 不同规则
+            //var contentRegex = "";
+            var memoList = await _memoService.GetMemoByPage(query, query.page, query.pageSize);
             if(memoList == null)
             {
-                _logger.LogError($"[MemoController] 查询 Memo Page: 每页展示 {pageSize} 条 memo, 第 {page} 页为空");
+                _logger.LogError($"[MemoController] 查询 Memo Page: 每页展示 {query.pageSize} 条 memo, 第 {query.page} 页为空");
                 return Json(new { memoList = memoList, statusCode = 400 });
             }
             return Json(new { memoList = memoList, statusCode = 200 });
+        }
+
+        [HttpPost("/Memo/bot", Name = "PostMemoByOpenId")]
+        public async Task<IActionResult> PostMemoByOpenId([FromBody] QQMemo qqMemo)
+        {
+            var user = await _userService.GetUserByOpenId(qqMemo.open_id);
+            Memo memo = new Memo();
+            if (user == null)
+            {
+                _logger.LogError($"[MemoController] Post Memo: 发送失败");
+                return Json(new { memo = memo, message = "发送失败", statusCode = 400 });
+            }
+            memo.content = qqMemo.memo;
+            memo.userId = user.userId;
+            var result = await _memoService.PostMemo(memo);
+            if (result == null)
+            {
+                _logger.LogError($"[MemoController] Post Memo: 发送失败");
+                return Json(new { memo = memo, message = "发送失败", statusCode = 400 });
+            }
+            return Json(new { memo = memo, statusCode = 200 });
         }
 
         /// <summary>
@@ -78,6 +101,13 @@ namespace MemosService.Controllers
             
             if (originMemo == null)
             {
+                var userId = memo.userId;
+                var user =  await _userService.GetUserById(userId);
+                if(user == null)
+                {
+                    _logger.LogError($"[MemoController] Post Memo: 发送失败");
+                    return Json(new { memo = memo, message = "发送失败", statusCode = 400 });
+                }
                 var result = await _memoService.PostMemo(memo);
                 if (result == null)
                 {
@@ -88,13 +118,13 @@ namespace MemosService.Controllers
             }
             else
             {
-                var idUsername = await _userService.GetUserById(originMemo.userId);
-                if (idUsername == null) 
+                var user = await _userService.GetUserById(originMemo.userId);
+                if (user == null) 
                 {
                     _logger.LogError($"[MemoController] Post Memo: 发送失败");
                     return Json(new { memo = memo, message = "发送失败", statusCode = 400 });
                 }
-                else if(idUsername.username != username)
+                else if(user.username != username)
                 {
                     _logger.LogError($"[MemoController] Post Memo: 发送失败");
                     return Json(new { memo = memo, message = "权限错误，发送失败", statusCode = 400 });

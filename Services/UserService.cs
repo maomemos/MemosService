@@ -5,6 +5,7 @@ using MemosService.Utils;
 using System.Text.Json.Serialization;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace MemosService.Services
 {
@@ -23,6 +24,17 @@ namespace MemosService.Services
         public async Task<User> GetUserById(int userId)
         {
             var user = await _context.Users.Where(x => x.userId == userId).FirstOrDefaultAsync();
+            return user;
+        }
+
+        public async Task<User> GetUserByOpenId(string open_id)
+        {
+            var user = await _context.Users.Where(x => x.open_id == open_id).FirstOrDefaultAsync();
+            return user;
+        }
+        public async Task<User> GetUserByEmail(string email)
+        {
+            var user = await _context.Users.Where(x => x.email == email).FirstOrDefaultAsync();
             return user;
         }
 
@@ -94,7 +106,7 @@ namespace MemosService.Services
                 currentUser.password = account.password ?? currentUser.password;
                 currentUser.email = account.email ?? currentUser.email;
                 currentUser.open_id = account.open_id ?? currentUser.open_id;
-                if (account.password != null)
+                if(account.password != null &&  account.password.Length > 0)
                 {
                     currentUser.password = BCrypt.Net.BCrypt.HashPassword(account.password, 4) ?? currentUser.password;
                 }
