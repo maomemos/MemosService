@@ -3,6 +3,7 @@ using MemosService.Services;
 using Microsoft.AspNetCore.Authorization;
 using MemosService.Models;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Cors;
 
 namespace MemosService.Controllers
 {
@@ -43,8 +44,6 @@ namespace MemosService.Controllers
         /// 查询特定页条目
         /// </summary>
         /// <param name="query">查询参数</param>
-        /// <param name="page">页数</param>
-        /// <param name="pageSize">每页条目数</param>
         /// <returns></returns>
         [HttpPost("/Memo/trends", Name = "GetMemoByPage")]
         [Authorize]
@@ -61,7 +60,13 @@ namespace MemosService.Controllers
             return Json(new { memoList = memoList, statusCode = 200 });
         }
 
+        /// <summary>
+        /// 发送 Memo
+        /// </summary>
+        /// <param name="qqMemo">qq 消息里的参数</param>
+        /// <returns></returns>
         [HttpPost("/Memo/bot", Name = "PostMemoByOpenId")]
+        [EnableCors("*")]
         public async Task<IActionResult> PostMemoByOpenId([FromBody] QQMemo qqMemo)
         {
             var user = await _userService.GetUserByOpenId(qqMemo.open_id);
