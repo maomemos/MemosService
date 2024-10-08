@@ -147,18 +147,19 @@ namespace MemosService.Controllers
             var claims = jsonToken.Claims.ToList();
             var username = claims.FirstOrDefault(c => c.Type == "sub")!.Value.ToString();
             var originUser = await _userService.GetUserById(account.userId);
+
             if(originUser == null)
             {
                 _logger.LogError($"[UserController] 更新 Memo: 更新用户失败");
-                return Json(new { user = originUser, statusCode = 999 });
+                return Json(new { user = originUser, statusCode = 400 });
             }
             else
             {
                 if(originUser.username == username)
                 {
-                    if (account.currentPassword != null && BCrypt.Net.BCrypt.Verify(account.currentPassword, originUser.password))
+                    if(account.currentPassword != null && BCrypt.Net.BCrypt.Verify(account.currentPassword, originUser.password))
                     {
-                        if (account.password != null && account.password.Length > 0)
+                        if(account.password != null && account.password.Length > 0)
                         {
                             string passwordPattern = @"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[#@_])[a-zA-Z0-9#@_]{10,20}$";
                             bool isValidPassword = Regex.IsMatch(account.password, passwordPattern);
@@ -166,6 +167,17 @@ namespace MemosService.Controllers
                             {
                                 _logger.LogError($"[UserController] 更新 Memo: 更新用户失败");
                                 return Json(new { message = "密码格式错误", statusCode = 405 });
+                            }
+                        }
+                        if(account.email != null)
+                        {
+                            var emailUser = await _userService.GetUserByEmail(account.email);
+                            if(emailUser != null)
+                            {
+                                if(emailUser.userId != originUser.userId)
+                                {
+                                    return Json(new { message = "邮箱已被绑定", statusCode = 402 });
+                                }
                             }
                         }
                         await _userService.UpdateUser(account);
@@ -183,6 +195,36 @@ namespace MemosService.Controllers
                     return Json(new { message = "Token 错误", statusCode = 400 });
                 }
             }
+        }
+        
+        /// <summary>
+        /// 找回用户名
+        /// </summary>
+        /// <param name="email">账号绑定的邮箱</param>
+        /// <returns></returns>
+        [HttpGet("/User/username", Name = "GetUsername")]
+        public async Task<IActionResult> GetUsername([FromQuery] string email)
+        {
+            if (await _userService.ForgetUsername(email))
+            {
+                return Json(new { email = email, message = "查询用户名成功", statusCode = 200 });
+            }
+            return Json(new { email = email, message = "检查邮箱后重试", statusCode = 400 });
+        }
+
+        /// <summary>
+        /// 找回用户密码
+        /// </summary>
+        /// <param name="email">账号绑定的邮箱</param>
+        /// <returns></returns>
+        [HttpGet("/User/password", Name = "GetPassword")]
+        public async Task<IActionResult> ResetPassword([FromQuery] string email)
+        {
+            if (await _userService.ForgetPassword(email))
+            {
+               return Json(new { email = email, message = "成功发送重置密码邮件", statusCode = 200 });
+            }
+            return Json(new { email = email, message = "检查邮箱后重试", statusCode = 400 });
         }
     }
 }

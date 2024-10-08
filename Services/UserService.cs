@@ -2,10 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using MemosService.Data;
 using MemosService.Utils;
-using System.Text.Json.Serialization;
-using System.Net.Http.Json;
-using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace MemosService.Services
 {
@@ -103,6 +99,17 @@ namespace MemosService.Services
                     _logger.LogError($"[UserService] 修改用户: 用户不存在");
                     return null;
                 }
+                if(account.email != null)
+                {
+                    var emailUser = await _context.Users.Where(x => x.email == account.email).FirstOrDefaultAsync();
+                    if(emailUser != null)
+                    {
+                        if(emailUser.userId != currentUser.userId)
+                        {
+                            return null;
+                        }
+                    }
+                }
                 currentUser.password = account.password ?? currentUser.password;
                 currentUser.email = account.email ?? currentUser.email;
                 currentUser.open_id = account.open_id ?? currentUser.open_id;
@@ -175,6 +182,26 @@ namespace MemosService.Services
                 _logger.LogError(ex.ToString());
                 return null;
             }
+        }
+
+        public async Task<bool> ForgetUsername(string email)
+        {
+            var emailHandler = new Email(_config, _context);
+            if(await emailHandler.GetUsername(email))
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> ForgetPassword(string email)
+        {
+            var emailHandler = new Email(_config, _context);
+            if (await emailHandler.GetResetPasswordLink(email))
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

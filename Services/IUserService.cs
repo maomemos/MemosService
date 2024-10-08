@@ -13,5 +13,7 @@ namespace MemosService.Services
         Task<User> UpdateUser(Account account);
         Task<Dictionary<int, int>> GetUserAnalysisData(int userId, int year);
         Task<List<object>> GetUserHeatmapData(int userId, int year);
+        Task<bool> ForgetUsername(string email);
+        Task<bool> ForgetPassword(string email);
     }
 }
