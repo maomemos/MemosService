@@ -62,7 +62,7 @@ namespace MemosService.Utils
             var message = "";
             if (user != null)
             {
-                message = $"Hi,{email}\n点击下面链接找回密码\n{_config["Cors:domain"]}/forget?{user.password}&{user.userId}&{user.email}";
+                message = $"Hi,{email}\n点击下面链接找回密码\n{_config["Cors:domain"]}/forget?hash={user.password}&userId={user.userId}&email={user.email}";
                 try
                 {
                     await SendMailMessage(email, "【MAOJI】找回密码", message);
