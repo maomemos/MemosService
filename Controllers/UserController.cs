@@ -217,7 +217,7 @@ namespace MemosService.Controllers
         /// </summary>
         /// <param name="email">账号绑定的邮箱</param>
         /// <returns></returns>
-        [HttpGet("/User/password", Name = "GetPassword")]
+        [HttpGet("/User/password", Name = "GetResetPasswordLink")]
         public async Task<IActionResult> ResetPassword([FromQuery] string email)
         {
             if (await _userService.ForgetPassword(email))
@@ -225,6 +225,24 @@ namespace MemosService.Controllers
                return Json(new { email = email, message = "成功发送重置密码邮件", statusCode = 200 });
             }
             return Json(new { email = email, message = "检查邮箱后重试", statusCode = 400 });
+        }
+
+        [HttpPost("/User/password", Name = "UpdatePassword")]
+        public async Task<IActionResult> UpdatePassword([FromQuery] string hash, [FromQuery] string userId, [FromQuery] string email, [FromBody] string password)
+        {
+            var user = await _userService.GetUserById(int.Parse(userId));
+            if(user == null)
+            {
+                return Json(new { message = "参数错误", statusCode = 400 });
+            }
+            if(user.password == hash && user.email == email)
+            {
+                if(await _userService.ResetPassword(password, user))
+                {
+                    return Json(new { message = "重置密码成功", statusCode = 200 });
+                };
+            }
+            return Json(new { message = "重置密码失败", statusCode = 400 });
         }
     }
 }

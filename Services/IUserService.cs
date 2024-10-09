@@ -15,5 +15,6 @@ namespace MemosService.Services
         Task<List<object>> GetUserHeatmapData(int userId, int year);
         Task<bool> ForgetUsername(string email);
         Task<bool> ForgetPassword(string email);
+        Task<bool> ResetPassword(string password, User user);
     }
 }

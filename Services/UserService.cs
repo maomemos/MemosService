@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using MemosService.Data;
 using MemosService.Utils;
+using System.Security.Principal;
 
 namespace MemosService.Services
 {
@@ -110,7 +111,6 @@ namespace MemosService.Services
                         }
                     }
                 }
-                currentUser.password = account.password ?? currentUser.password;
                 currentUser.email = account.email ?? currentUser.email;
                 currentUser.open_id = account.open_id ?? currentUser.open_id;
                 if(account.password != null &&  account.password.Length > 0)
@@ -199,6 +199,18 @@ namespace MemosService.Services
             var emailHandler = new Email(_config, _context);
             if (await emailHandler.GetResetPasswordLink(email))
             {
+                return true;
+            }
+            return false;
+        }
+
+        public async Task<bool> ResetPassword(string password, User user)
+        {
+            var currentUser = await _context.Users.Where(x => x.userId == user.userId).FirstOrDefaultAsync();
+            if(currentUser != null)
+            {
+                currentUser.password = BCrypt.Net.BCrypt.HashPassword(password, 4);
+                await _context.SaveChangesAsync();
                 return true;
             }
             return false;
