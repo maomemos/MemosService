@@ -32,9 +32,7 @@ namespace MemosService.Utils
             };
             var expires = DateTime.UtcNow.AddYears(1);
             var tokenHandler = new JwtSecurityTokenHandler();
-#pragma warning disable CS8604
-            var key = Encoding.ASCII.GetBytes(_config["JWT:Key"]);
-#pragma warning restore CS8604
+            var key = Encoding.ASCII.GetBytes(_config["JWT:Key"]!);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),

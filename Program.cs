@@ -73,9 +73,7 @@ namespace MemosService
                         ValidateIssuerSigningKey = true,
                         ValidIssuer = builder.Configuration["JWT:Issuer"],
                         ValidAudience = builder.Configuration["JWT:Audience"],
-#pragma warning disable CS8604
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"])),
-#pragma warning restore CS8604
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Key"]!)),
                         // Token 过期时间为 1 年
                         LifetimeValidator = (before, expires, token, param) => expires > DateTime.UtcNow,
                         ClockSkew = TimeSpan.Zero,
