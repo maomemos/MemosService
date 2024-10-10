@@ -111,8 +111,8 @@ namespace MemosService.Services
                         }
                     }
                 }
-                currentUser.email = account.email ?? currentUser.email;
-                currentUser.open_id = account.open_id ?? currentUser.open_id;
+                currentUser.email = account.email;
+                currentUser.open_id = account.open_id;
                 if(account.password != null &&  account.password.Length > 0)
                 {
                     currentUser.password = BCrypt.Net.BCrypt.HashPassword(account.password, 4) ?? currentUser.password;
