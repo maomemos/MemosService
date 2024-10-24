@@ -49,8 +49,6 @@ namespace MemosService.Controllers
         [Authorize]
         public async Task<IActionResult> GetMemoByPage([FromBody] Query query) 
         {
-            // TODO query 不同规则
-            //var contentRegex = "";
             var memoList = await _memoService.GetMemoByPage(query, query.page, query.pageSize);
             if(memoList == null)
             {

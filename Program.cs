@@ -13,6 +13,7 @@ namespace MemosService
         static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.WebHost.UseUrls("http://*:5046");
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddCors(option =>
             {

@@ -8,6 +8,5 @@ namespace MemosService.Services
         Task<List<Memo>> GetMemoByPage(Query query, int page, int pageSize);
         Task<Memo> PostMemo(Memo memo);
         Task<int> DeleteMemo(int memoId);
-        Task<Memo> PostMemoByOpenId(QQMemo qqMemo);
     }
 }

@@ -92,12 +92,6 @@ namespace MemosService.Services
             }
         }
 
-        public async Task<Memo> PostMemoByOpenId(QQMemo qqMemo)
-        {
-
-            return null;
-        }
-
         public async Task<int> DeleteMemo(int memoId)
         {
             try
