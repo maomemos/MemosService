@@ -173,7 +173,7 @@ namespace MemosService.Services
                 {
                     DateTime currentDate = startDate.AddDays(i - 1);
                     int count = heatmapData.FirstOrDefault(g => g.Date == currentDate)?.Count ?? 0;
-                    result.Add(new { date = currentDate.ToString("yyyy-MM-dd"), count = count, level = Math.Floor(Math.Sqrt(count * 100) / 10) });
+                    result.Add(new { date = currentDate.ToString("yyyy-MM-dd"), count = count, level = (int)Math.Clamp(count, 0, 4) });
                 }
                 return result;
             }

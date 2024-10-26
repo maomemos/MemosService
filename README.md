@@ -16,6 +16,6 @@ ADD-MIGRATION InitialCreate
 UPDATE-DATABASE
 ```
 
-3. 配置 `appsettings.json`内的信息
+# 配置 `appsettings.json`内的信息
 
 配置包括跨域信息、JWT 生成配置、Email 等信息。
